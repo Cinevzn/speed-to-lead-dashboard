@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getOverallStats, getAverageStats, getPercentiles, getTrends } from '../api';
+import { getOverallStats, getAverageStats, getPercentiles, getTrends, getTimeOfDay } from '../api';
 import Charts from './Charts';
 
 function OverallStats() {
@@ -7,6 +7,7 @@ function OverallStats() {
   const [averageStats, setAverageStats] = useState(null);
   const [percentiles, setPercentiles] = useState(null);
   const [trends, setTrends] = useState([]);
+  const [timeOfDay, setTimeOfDay] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('day');
@@ -20,17 +21,19 @@ function OverallStats() {
       setLoading(true);
       setError(null);
 
-      const [overallRes, avgRes, percRes, trendsRes] = await Promise.all([
+      const [overallRes, avgRes, percRes, trendsRes, timeOfDayRes] = await Promise.all([
         getOverallStats(),
         getAverageStats(),
         getPercentiles(),
-        getTrends(period)
+        getTrends(period),
+        getTimeOfDay()
       ]);
 
       setOverallStats(overallRes.data);
       setAverageStats(avgRes.data);
       setPercentiles(percRes.data);
       setTrends(trendsRes.data.trends || []);
+      setTimeOfDay(timeOfDayRes.data.time_of_day);
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to load statistics');
       console.error('Error loading stats:', err);
@@ -88,6 +91,15 @@ function OverallStats() {
             {formatMinutes(averageStats?.max_speed_minutes)}
           </div>
         </div>
+        <div className="stat-card">
+          <h3>Avg Lead Creation Time</h3>
+          <div className="value">
+            {timeOfDay?.formatted_time || 'N/A'}
+          </div>
+          <div className="sub-value">
+            Based on {timeOfDay?.total_leads || 0} leads
+          </div>
+        </div>
       </div>
 
       {/* Percentiles */}
@@ -116,7 +128,7 @@ function OverallStats() {
 
       {/* Trends */}
       <div className="chart-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="chart-header">
           <h2>Speed to Lead Trends</h2>
           <select value={period} onChange={(e) => setPeriod(e.target.value)}>
             <option value="day">Daily</option>

@@ -273,6 +273,52 @@ class Lead {
     }
 
     /**
+     * Get average time of day when leads are created
+     * @returns {Promise<Object>}
+     */
+    static async getAverageTimeOfDay() {
+        try {
+            // Get average hour and minute of day
+            const [result] = await db.execute(
+                `SELECT 
+                    AVG(HOUR(created_at)) as avg_hour,
+                    AVG(MINUTE(created_at)) as avg_minute,
+                    COUNT(*) as total_leads
+                FROM leads`
+            );
+
+            if (!result[0] || result[0].total_leads === 0) {
+                return {
+                    average_time: null,
+                    average_hour: null,
+                    average_minute: null,
+                    formatted_time: 'N/A',
+                    total_leads: 0
+                };
+            }
+
+            const avgHour = Math.round(result[0].avg_hour);
+            const avgMinute = Math.round(result[0].avg_minute);
+            
+            // Format time
+            const hour12 = avgHour % 12 || 12;
+            const ampm = avgHour >= 12 ? 'PM' : 'AM';
+            const formattedTime = `${hour12}:${avgMinute.toString().padStart(2, '0')} ${ampm}`;
+
+            return {
+                average_time: `${avgHour}:${avgMinute.toString().padStart(2, '0')}`,
+                average_hour: avgHour,
+                average_minute: avgMinute,
+                formatted_time: formattedTime,
+                total_leads: parseInt(result[0].total_leads) || 0
+            };
+        } catch (error) {
+            console.error('Error in Lead.getAverageTimeOfDay:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Parse lead data (handle JSON metadata)
      * @private
      */

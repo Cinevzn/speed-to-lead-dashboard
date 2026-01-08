@@ -17,6 +17,7 @@ export const getAverageStats = () => api.get('/api/stats/average');
 export const getPercentiles = () => api.get('/api/stats/percentiles');
 export const getTrends = (period) => api.get('/api/stats/trends', { params: { period } });
 export const getStatsBySetter = () => api.get('/api/stats/by-setter');
+export const getTimeOfDay = () => api.get('/api/stats/time-of-day');
 
 export default api;
 

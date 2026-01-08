@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getOverallStats, getLeads, getTrends } from '../api';
+import { getOverallStats, getLeads, getTrends, getTimeOfDay } from '../api';
 import Charts from './Charts';
 import { format } from 'date-fns';
 
@@ -7,6 +7,7 @@ function Dashboard() {
   const [overallStats, setOverallStats] = useState(null);
   const [leads, setLeads] = useState([]);
   const [trends, setTrends] = useState([]);
+  const [timeOfDay, setTimeOfDay] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('day');
@@ -20,15 +21,17 @@ function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const [statsRes, leadsRes, trendsRes] = await Promise.all([
+      const [statsRes, leadsRes, trendsRes, timeOfDayRes] = await Promise.all([
         getOverallStats(),
         getLeads({ limit: 50 }),
-        getTrends(period)
+        getTrends(period),
+        getTimeOfDay()
       ]);
 
       setOverallStats(statsRes.data);
       setLeads(leadsRes.data.leads || []);
       setTrends(trendsRes.data.trends || []);
+      setTimeOfDay(timeOfDayRes.data.time_of_day);
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to load dashboard data');
       console.error('Error loading dashboard:', err);
@@ -80,11 +83,20 @@ function Dashboard() {
             {formatMinutes(overallStats?.stats?.min_speed_minutes)}
           </div>
         </div>
+        <div className="stat-card">
+          <h3>Avg Lead Creation Time</h3>
+          <div className="value">
+            {timeOfDay?.formatted_time || 'N/A'}
+          </div>
+          <div className="sub-value">
+            Based on {timeOfDay?.total_leads || 0} leads
+          </div>
+        </div>
       </div>
 
       {/* Trends Chart */}
       <div className="chart-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="chart-header">
           <h2>Speed to Lead Trends</h2>
           <select value={period} onChange={(e) => setPeriod(e.target.value)}>
             <option value="day">Daily</option>

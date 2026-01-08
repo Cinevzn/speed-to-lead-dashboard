@@ -62,6 +62,18 @@ router.get('/trends', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * GET /api/stats/time-of-day
+ * Average time of day when leads are created
+ */
+router.get('/time-of-day', asyncHandler(async (req, res) => {
+    const timeOfDay = await Lead.getAverageTimeOfDay();
+    
+    res.json({
+        time_of_day: timeOfDay
+    });
+}));
+
+/**
  * GET /api/stats/by-setter
  * Statistics grouped by setter
  */

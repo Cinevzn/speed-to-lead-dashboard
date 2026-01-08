@@ -26,6 +26,157 @@ code {
   padding: 20px;
 }
 
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header {
+    padding: 20px 15px;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 1.8em;
+  }
+
+  .header p {
+    font-size: 1em;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 20px;
+  }
+
+  .stat-card .value {
+    font-size: 1.5em;
+  }
+
+  .chart-container {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .chart-container h2 {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .chart-header select {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .table-container {
+    padding: 15px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    font-size: 0.85em;
+    min-width: 600px;
+    display: block;
+    overflow-x: auto;
+  }
+
+  thead, tbody, tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-bar select,
+  .filter-bar input {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .header h1 {
+    font-size: 1.5em;
+  }
+
+  .header p {
+    font-size: 0.9em;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+
+  .stat-card .value {
+    font-size: 1.3em;
+  }
+
+  .chart-container,
+  .table-container {
+    padding: 12px;
+  }
+
+  .chart-container h2 {
+    font-size: 1.1em;
+  }
+
+  table {
+    font-size: 0.75em;
+    min-width: 500px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 0.85em;
+  }
+
+  .stat-card h3 {
+    font-size: 0.8em;
+  }
+
+  .stat-card .value {
+    font-size: 1.2em;
+  }
+}
+
 .header {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d1a1a 100%);
   border: 1px solid #dc2626;
@@ -115,6 +266,15 @@ code {
   color: #ffffff;
   border-bottom: 2px solid #dc2626;
   padding-bottom: 10px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .table-container {
