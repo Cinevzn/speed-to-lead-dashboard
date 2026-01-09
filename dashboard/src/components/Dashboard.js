@@ -11,10 +11,12 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('day');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
   useEffect(() => {
     loadData();
-  }, [period]);
+  }, [period, currentPage]);
 
   const loadData = async () => {
     try {
@@ -23,13 +25,14 @@ function Dashboard() {
 
       const [statsRes, leadsRes, trendsRes, timeOfDayRes] = await Promise.all([
         getOverallStats(),
-        getLeads({ limit: 50 }),
+        getLeads({ limit: 50, page: currentPage }),
         getTrends(period),
         getTimeOfDay()
       ]);
 
       setOverallStats(statsRes.data);
       setLeads(leadsRes.data.leads || []);
+      setPagination(leadsRes.data.pagination);
       setTrends(trendsRes.data.trends || []);
       setTimeOfDay(timeOfDayRes.data.time_of_day);
     } catch (err) {
@@ -46,6 +49,11 @@ function Dashboard() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -132,7 +140,7 @@ function Dashboard() {
               leads.map((lead) => (
                 <tr key={lead.id}>
                   <td>{lead.ghl_lead_id}</td>
-                  <td>{lead.setter_name || lead.setter_email}</td>
+                  <td>{lead.setter_name || lead.setter_email || 'Unassigned'}</td>
                   <td>{format(new Date(lead.created_at), 'MMM d, yyyy HH:mm')}</td>
                   <td>
                     {lead.first_contacted_at
@@ -147,9 +155,12 @@ function Dashboard() {
                         borderRadius: '4px',
                         fontSize: '12px',
                         backgroundColor:
-                          lead.status === 'contacted' ? '#1a2e1a' : '#2e2a1a',
-                        color: lead.status === 'contacted' ? '#4ade80' : '#fbbf24',
-                        border: lead.status === 'contacted' ? '1px solid #4ade80' : '1px solid #fbbf24',
+                          lead.status === 'contacted' ? '#1a2e1a' : 
+                          lead.status === 'unassigned' ? '#2d1a1a' : '#2e2a1a',
+                        color: lead.status === 'contacted' ? '#4ade80' : 
+                               lead.status === 'unassigned' ? '#ef4444' : '#fbbf24',
+                        border: lead.status === 'contacted' ? '1px solid #4ade80' : 
+                                lead.status === 'unassigned' ? '1px solid #dc2626' : '1px solid #fbbf24',
                       }}
                     >
                       {lead.status}
@@ -160,6 +171,34 @@ function Dashboard() {
             )}
           </tbody>
         </table>
+        
+        {/* Pagination Controls */}
+        {pagination && pagination.total_pages > 1 && (
+          <div className="pagination">
+            <button 
+              className="btn"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.has_prev}
+            >
+              Previous
+            </button>
+            
+            <div className="pagination-info">
+              Page {pagination.current_page} of {pagination.total_pages}
+              <span className="pagination-total">
+                ({pagination.total_leads} total leads)
+              </span>
+            </div>
+            
+            <button 
+              className="btn"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.has_next}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

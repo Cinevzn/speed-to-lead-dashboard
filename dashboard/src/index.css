@@ -458,3 +458,51 @@ tr:hover {
   background: #dc2626;
 }
 
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #2a2a2a;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.pagination-info {
+  color: #e0e0e0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pagination-total {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.pagination .btn {
+  min-width: 100px;
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-info {
+    text-align: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .pagination .btn {
+    width: 100%;
+  }
+}
