@@ -44,11 +44,19 @@ class Lead {
     static async findById(id) {
         try {
             const [leads] = await db.execute(
-                'SELECT * FROM leads WHERE id = ?',
+                `SELECT l.*, a.name as setter_name, a.email as setter_email 
+                FROM leads l
+                LEFT JOIN appointment_setters a ON l.appointment_setter_id = a.id
+                WHERE l.id = ?`,
                 [id]
             );
             if (leads.length === 0) return null;
-            return this._parseLead(leads[0]);
+            const lead = this._parseLead(leads[0]);
+            // Set status to unassigned if no setter
+            if (!lead.appointment_setter_id && lead.status === 'created') {
+                lead.status = 'unassigned';
+            }
+            return lead;
         } catch (error) {
             console.error('Error in Lead.findById:', error);
             throw error;
@@ -63,11 +71,19 @@ class Lead {
     static async findByGhlLeadId(ghlLeadId) {
         try {
             const [leads] = await db.execute(
-                'SELECT * FROM leads WHERE ghl_lead_id = ?',
+                `SELECT l.*, a.name as setter_name, a.email as setter_email 
+                FROM leads l
+                LEFT JOIN appointment_setters a ON l.appointment_setter_id = a.id
+                WHERE l.ghl_lead_id = ?`,
                 [ghlLeadId]
             );
             if (leads.length === 0) return null;
-            return this._parseLead(leads[0]);
+            const lead = this._parseLead(leads[0]);
+            // Set status to unassigned if no setter
+            if (!lead.appointment_setter_id && lead.status === 'created') {
+                lead.status = 'unassigned';
+            }
+            return lead;
         } catch (error) {
             console.error('Error in Lead.findByGhlLeadId:', error);
             throw error;
@@ -109,7 +125,7 @@ class Lead {
             let query = `
                 SELECT l.*, a.name as setter_name, a.email as setter_email 
                 FROM leads l
-                JOIN appointment_setters a ON l.appointment_setter_id = a.id
+                LEFT JOIN appointment_setters a ON l.appointment_setter_id = a.id
                 WHERE 1=1
             `;
             const params = [];
@@ -120,8 +136,17 @@ class Lead {
             }
 
             if (filters.status) {
-                query += ' AND l.status = ?';
-                params.push(filters.status);
+                if (filters.status === 'unassigned') {
+                    query += ' AND l.appointment_setter_id IS NULL';
+                } else {
+                    query += ' AND l.status = ?';
+                    params.push(filters.status);
+                }
+            }
+            
+            // Filter for unassigned leads (if status filter not already applied)
+            if (filters.unassigned_only) {
+                query += ' AND l.appointment_setter_id IS NULL';
             }
 
             if (filters.start_date) {
@@ -136,13 +161,25 @@ class Lead {
 
             query += ' ORDER BY l.created_at DESC';
 
+            if (filters.offset) {
+                query += ' OFFSET ?';
+                params.push(filters.offset);
+            }
+
             if (filters.limit) {
                 query += ' LIMIT ?';
                 params.push(filters.limit);
             }
 
             const [leads] = await db.execute(query, params);
-            return leads.map(lead => this._parseLead(lead));
+            return leads.map(lead => {
+                const parsed = this._parseLead(lead);
+                // Set status to unassigned if no setter
+                if (!parsed.appointment_setter_id && parsed.status === 'created') {
+                    parsed.status = 'unassigned';
+                }
+                return parsed;
+            });
         } catch (error) {
             console.error('Error in Lead.findAll:', error);
             throw error;
@@ -226,6 +263,56 @@ class Lead {
             };
         } catch (error) {
             console.error('Error in Lead.getPercentiles:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get total count of leads matching filters
+     * @param {Object} filters 
+     * @returns {Promise<number>}
+     */
+    static async getTotalCount(filters = {}) {
+        try {
+            let query = `
+                SELECT COUNT(*) as total
+                FROM leads l
+                WHERE 1=1
+            `;
+            const params = [];
+
+            if (filters.appointment_setter_id) {
+                query += ' AND l.appointment_setter_id = ?';
+                params.push(filters.appointment_setter_id);
+            }
+
+            if (filters.status) {
+                if (filters.status === 'unassigned') {
+                    query += ' AND l.appointment_setter_id IS NULL';
+                } else {
+                    query += ' AND l.status = ?';
+                    params.push(filters.status);
+                }
+            }
+
+            if (filters.unassigned_only) {
+                query += ' AND l.appointment_setter_id IS NULL';
+            }
+
+            if (filters.start_date) {
+                query += ' AND l.created_at >= ?';
+                params.push(filters.start_date);
+            }
+
+            if (filters.end_date) {
+                query += ' AND l.created_at <= ?';
+                params.push(filters.end_date);
+            }
+
+            const [result] = await db.execute(query, params);
+            return parseInt(result[0].total) || 0;
+        } catch (error) {
+            console.error('Error in Lead.getTotalCount:', error);
             throw error;
         }
     }

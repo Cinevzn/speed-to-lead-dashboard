@@ -53,12 +53,18 @@ router.post('/lead-created', asyncHandler(async (req, res) => {
             throw new Error('Missing required field: lead ID');
         }
 
+        // Handle NULL setter - set status to unassigned
+        let setter = null;
+        let leadStatus = 'created';
+        
         if (!setterEmail) {
-            throw new Error('Missing required field: appointment setter email');
+            // No setter provided - mark as unassigned
+            leadStatus = 'unassigned';
+            console.log(`[Lead Created] No setter provided for lead ${leadId}, marking as unassigned`);
+        } else {
+            // Find or create appointment setter
+            setter = await AppointmentSetter.findOrCreate(setterEmail, setterName);
         }
-
-        // Find or create appointment setter
-        const setter = await AppointmentSetter.findOrCreate(setterEmail, setterName);
 
         // Check if lead already exists
         const existingLead = await Lead.findByGhlLeadId(leadId);
@@ -82,9 +88,9 @@ router.post('/lead-created', asyncHandler(async (req, res) => {
         
         const lead = await Lead.create({
             ghl_lead_id: leadId,
-            appointment_setter_id: setter.id,
+            appointment_setter_id: setter ? setter.id : null,
             created_at: createdAt,
-            status: 'created',
+            status: leadStatus,
             metadata: enhancedMetadata
         });
 

@@ -105,7 +105,7 @@ router.get('/overall', asyncHandler(async (req, res) => {
 /**
  * GET /api/reports/leads
  * List all leads with speed-to-lead data
- * Query params: setter_id, status, start_date, end_date, limit
+ * Query params: setter_id, status, start_date, end_date, limit, page
  */
 router.get('/leads', asyncHandler(async (req, res) => {
     const filters = {};
@@ -125,17 +125,29 @@ router.get('/leads', asyncHandler(async (req, res) => {
     if (req.query.end_date) {
         filters.end_date = req.query.end_date;
     }
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
     
-    if (req.query.limit) {
-        filters.limit = parseInt(req.query.limit);
-    } else {
-        filters.limit = 100; // Default limit
-    }
+    filters.limit = limit;
+    filters.offset = offset;
 
     const leads = await Lead.findAll(filters);
+    const totalCount = await Lead.getTotalCount(filters);
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.json({
         leads: leads,
+        pagination: {
+            current_page: page,
+            total_pages: totalPages,
+            total_leads: totalCount,
+            per_page: limit,
+            has_next: page < totalPages,
+            has_prev: page > 1
+        },
         count: leads.length,
         filters: filters
     });
