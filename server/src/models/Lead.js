@@ -161,14 +161,14 @@ class Lead {
 
             query += ' ORDER BY l.created_at DESC';
 
-            if (filters.offset) {
-                query += ' OFFSET ?';
-                params.push(filters.offset);
-            }
-
             if (filters.limit) {
                 query += ' LIMIT ?';
                 params.push(filters.limit);
+            }
+
+            if (filters.offset) {
+                query += ' OFFSET ?';
+                params.push(filters.offset);
             }
 
             const [leads] = await db.execute(query, params);
