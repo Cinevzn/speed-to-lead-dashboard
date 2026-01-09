@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSetters, getSetterById, getStatsBySetter } from '../api';
 import Charts from './Charts';
+import { getGhlContactUrl } from '../utils/ghl';
 
 function SetterReport() {
   const [setters, setSetters] = useState([]);
@@ -180,7 +181,24 @@ function SetterReport() {
                 <tbody>
                   {setterDetails.recent_leads.map((lead) => (
                     <tr key={lead.id}>
-                      <td>{lead.ghl_lead_id}</td>
+                      <td>
+                        <a
+                          href={getGhlContactUrl(lead.ghl_lead_id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#ef4444',
+                            textDecoration: 'none',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.color = '#dc2626'}
+                          onMouseLeave={(e) => e.target.style.color = '#ef4444'}
+                        >
+                          {lead.ghl_lead_id}
+                        </a>
+                      </td>
                       <td>{new Date(lead.created_at).toLocaleString()}</td>
                       <td>
                         {lead.first_contacted_at

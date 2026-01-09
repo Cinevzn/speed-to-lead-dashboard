@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getOverallStats, getLeads, getTrends, getTimeOfDay } from '../api';
 import Charts from './Charts';
 import { format } from 'date-fns';
+import { getGhlContactUrl } from '../utils/ghl';
 
 function Dashboard() {
   const [overallStats, setOverallStats] = useState(null);
@@ -139,7 +140,24 @@ function Dashboard() {
             ) : (
               leads.map((lead) => (
                 <tr key={lead.id}>
-                  <td>{lead.ghl_lead_id}</td>
+                  <td>
+                    <a
+                      href={getGhlContactUrl(lead.ghl_lead_id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: '#ef4444',
+                        textDecoration: 'none',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.color = '#dc2626'}
+                      onMouseLeave={(e) => e.target.style.color = '#ef4444'}
+                    >
+                      {lead.ghl_lead_id}
+                    </a>
+                  </td>
                   <td>{lead.setter_name || lead.setter_email || 'Unassigned'}</td>
                   <td>{format(new Date(lead.created_at), 'MMM d, yyyy HH:mm')}</td>
                   <td>
